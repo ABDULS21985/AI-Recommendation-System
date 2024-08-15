@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  age       Int?
+  gender    String?
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  interactions UserInteraction[]
+  recommendations Recommendation[]
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  type        ItemType
+  metadata    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  interactions UserInteraction[]
+}
+
+model UserInteraction {
+  id             String     @id @default(uuid())
+  userId         String
+  itemId         String
+  interactionType InteractionType
+  rating         Int?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
+}
+
+model Recommendation {
+  id              String   @id @default(uuid())
+  userId          String
+  recommendedItems Json
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum ItemType {
+  product
+  video
+  content
+}
+
+enum InteractionType {
+  view
+  click
+  purchase
+  like
+  rating
+}
