@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Param, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, Logger } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
 
 @Controller('users')
 @ApiTags('Users')
@@ -72,6 +72,29 @@ export class UserController {
       return users;
     } catch (error) {
       this.logger.error('Failed to retrieve users', error.stack);
+      throw error;
+    }
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search for users by email, name, or location' })
+  @ApiQuery({ name: 'email', required: false, description: 'Search by user email' })
+  @ApiQuery({ name: 'name', required: false, description: 'Search by user name' })
+  @ApiQuery({ name: 'location', required: false, description: 'Search by user location' })
+  @ApiResponse({ status: 200, description: 'Successfully retrieved users based on search criteria.' })
+  async searchUsers(
+    @Query('email') email?: string,
+    @Query('name') name?: string,
+    @Query('location') location?: string,
+  ) {
+    this.logger.log('Received request to search for users with filters');
+    try {
+      const filters = { email, name, location };
+      const users = await this.userService.searchUsers(filters);
+      this.logger.log(`Successfully retrieved ${users.length} users based on search criteria`);
+      return users;
+    } catch (error) {
+      this.logger.error('Failed to search for users', error.stack);
       throw error;
     }
   }

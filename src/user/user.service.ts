@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -45,6 +46,28 @@ export class UserService {
       return users;
     } catch (error) {
       this.logger.error('Error fetching all users', error.stack);
+      throw error;
+    }
+  }
+
+  // Search users by email, name, and location
+  async searchUsers(filters: { email?: string; name?: string; location?: string }) {
+    this.logger.log(`Searching users with filters: ${JSON.stringify(filters)}`);
+    
+    try {
+      const { email, name, location } = filters;
+
+      const where: Prisma.UserWhereInput = {
+        email: email ? { contains: email, mode: 'insensitive' } : undefined,
+        name: name ? { contains: name, mode: 'insensitive' } : undefined,
+        location: location ? { contains: location, mode: 'insensitive' } : undefined,
+      };
+
+      const users = await this.prisma.user.findMany({ where });
+      this.logger.log(`Successfully retrieved ${users.length} users based on filters`);
+      return users;
+    } catch (error) {
+      this.logger.error('Error searching users', error.stack);
       throw error;
     }
   }
