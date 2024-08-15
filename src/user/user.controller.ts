@@ -38,4 +38,11 @@ export class UserController {
   getUserById(@Param('id') id: string) {
     return this.userService.getUserById(id);
   }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 200, description: 'List of all users.' })
+  getAllUsers() {
+    return this.userService.getAllUsers();
+  }
 }

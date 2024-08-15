@@ -20,4 +20,9 @@ export class CreateUserInteractionDto {
   @IsOptional()
   @IsInt()
   rating?: number;
+
+  @ApiProperty({ description: 'Whether the item is liked by the user (optional)', example: true, required: false })
+  @IsOptional()
+  @IsInt()
+  like?: boolean;
 }

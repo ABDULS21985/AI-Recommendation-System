@@ -10,7 +10,26 @@ export class UserInteractionService {
   constructor(private prisma: PrismaService) {}
 
   async logInteraction(data: CreateUserInteractionDto) {
-    return this.prisma.userInteraction.create({ data });
+    return this.prisma.userInteraction.upsert({
+      where: {
+        userId_itemId: {
+          userId: data.userId,
+          itemId: data.itemId,
+        },
+      },
+      update: {
+        interactionType: data.interactionType,
+        rating: data.rating,
+        like: data.like,
+      },
+      create: {
+        userId: data.userId,
+        itemId: data.itemId,
+        interactionType: data.interactionType,
+        rating: data.rating,
+        like: data.like,
+      },
+    });
   }
 
   async getUserInteractions(userId: string) {
@@ -22,7 +41,7 @@ export class UserInteractionService {
   async likeItem(userId: string, itemId: string, like: boolean) {
     return this.prisma.userInteraction.upsert({
       where: {
-        userId_itemId: { // Prisma expects this format for composite unique fields
+        userId_itemId: { 
           userId,
           itemId,
         },
@@ -35,7 +54,7 @@ export class UserInteractionService {
   async rateItem(userId: string, itemId: string, rating: number) {
     return this.prisma.userInteraction.upsert({
       where: {
-        userId_itemId: { // Same here for composite unique constraint
+        userId_itemId: { 
           userId,
           itemId,
         },

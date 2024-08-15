@@ -7,8 +7,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('Application Portfolio Management API')
-    .setDescription('API documentation for the APM system')
+    .setTitle('AI Recommendation System')
+    .setDescription('API documentation for the AI Recommendation System')
     .setVersion('1.0')
     .build();
 
