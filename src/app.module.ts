@@ -6,10 +6,11 @@ import { RecommendationModule } from './recommendation/recommendation.module';
 import { ItemModule } from './item/item.module';
 import { UserModule } from './user/user.module';
 import { UserInteractionModule } from './user-interaction/user-interaction.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 
 @Module({
-  imports: [PrismaModule, RecommendationModule, ItemModule, UserModule, UserInteractionModule],
+  imports: [PrismaModule, RecommendationModule, ItemModule, UserModule, UserInteractionModule, MetricsModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -112,23 +112,23 @@ Running Unit Tests
 The application includes unit tests for services and controllers. To run the tests:
 
 
-##yarn test
+## yarn test
 
-##Logging and Monitoring
+## Logging and Monitoring
 Logging: The application uses NestJS's built-in logger for tracking requests, errors, and events.
 Monitoring: The application includes basic monitoring for scheduled Cron jobs and email notifications.
 
-##Future Enhancements
+## Future Enhancements
 Advanced Recommendation Algorithms: Introduce machine learning models for better personalization.
 Real-Time Notifications: Implement real-time push notifications for user recommendations.
 Admin Panel: Create an admin interface for managing items, users, and interactions.
 
-##Contributing
+## Contributing
 Fork the repository.
 Create a new feature branch (git checkout -b feature/your-feature).
 Commit your changes (git commit -am 'Add some feature').
 Push to the branch (git push origin feature/your-feature).
 Create a new Pull Request.
 
-##License
+## License
 This project is licensed under the MIT License 

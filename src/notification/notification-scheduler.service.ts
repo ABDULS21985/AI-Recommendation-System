@@ -20,8 +20,9 @@ export class NotificationSchedulerService {
     this.logger.log('Starting daily notification cron job');
     try {
       const users = await this.getUsersWithPreference(Frequency.DAILY);
+      const domain = 'amazon.com'; // Default domain for daily notifications
       for (const user of users) {
-        await this.recommendationService.generateRecommendations(user.id);
+        await this.recommendationService.generateRecommendations(user.id, domain);
       }
       this.logger.log('Daily notification cron job completed successfully');
     } catch (error) {
@@ -35,8 +36,9 @@ export class NotificationSchedulerService {
     this.logger.log('Starting weekly notification cron job');
     try {
       const users = await this.getUsersWithPreference(Frequency.WEEKLY);
+      const domain = 'netflix.com'; // Default domain for weekly notifications
       for (const user of users) {
-        await this.recommendationService.generateRecommendations(user.id);
+        await this.recommendationService.generateRecommendations(user.id, domain);
       }
       this.logger.log('Weekly notification cron job completed successfully');
     } catch (error) {

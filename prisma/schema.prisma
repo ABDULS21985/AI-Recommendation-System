@@ -53,6 +53,7 @@ model UserInteraction {
   id             String     @id @default(uuid())
   userId         String
   itemId         String
+  domain         String?
   interactionType InteractionType
   like           Boolean    @default(false)
   rating         Int?
@@ -66,13 +67,19 @@ model UserInteraction {
 }
 
 model Recommendation {
-  id              String   @id @default(uuid())
-  userId          String
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
   recommendedItems Json
-  createdAt       DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
+  domain      String?   // To track the domain for which the recommendation is made
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime? @updatedAt
+  product        Product?  @relation(fields: [productId], references: [id])
+  productId      String?
+  article        Article?  @relation(fields: [articleId], references: [id])
+  articleId      String?
 }
+
 
 enum ItemType {
   product
@@ -87,3 +94,29 @@ enum InteractionType {
   like
   rating
 }
+
+model Product {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  metadata    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // Foreign key relationships for recommendations and user interactions
+  recommendations Recommendation[]
+}
+
+model Article {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  author      String
+  metadata    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // Foreign key relationships for recommendations and user interactions
+  recommendations Recommendation[]
+}
+
+
