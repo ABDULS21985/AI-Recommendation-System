@@ -4,12 +4,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ItemDto } from './dto/item.dto';
 import { EmailService } from '../notification/email.service';
+import { NotificationPreferenceService } from '../notification/notification-preference.service';
 
 @Injectable()
 export class RecommendationService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
+    private notificationPreferenceService: NotificationPreferenceService,
   ) {}
 
   async getRecommendationsForUser(userId: string) {
@@ -103,5 +105,20 @@ export class RecommendationService {
       const scoreB = (b.like ? 1 : 0) + (b.rating || 0);
       return scoreB - scoreA;
     });
+  }
+  
+  private shouldSendEmail(preference: any): boolean {
+    if (!preference) return false;
+    
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+
+    if (preference.frequency === 'DAILY') {
+      return true;
+    } else if (preference.frequency === 'WEEKLY' && dayOfWeek === 0) { // Send on Sunday for weekly
+      return true;
+    }
+
+    return false;
   }
 }

@@ -16,10 +16,26 @@ model User {
   age       Int?
   gender    String?
   location  String?
+  notificationPreference   NotificationPreference?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   interactions UserInteraction[]
   recommendations Recommendation[]
+}
+
+model NotificationPreference {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  frequency  Frequency
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
 }
 
 model Item {
