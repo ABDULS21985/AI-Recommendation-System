@@ -47,7 +47,7 @@ The system follows a microservice architecture with a modular design, separating
 
 Create a `.env` file in the project root and add the following variables:
 
-```env
+
 DATABASE_URL="postgresql://<username>:<password>@localhost:5432/arsystem"
 JWT_SECRET="your_jwt_secret"
 SMTP_HOST="your_smtp_host"
