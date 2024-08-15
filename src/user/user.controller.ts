@@ -1,5 +1,4 @@
-// src/user/user.controller.ts
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Logger } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
@@ -7,6 +6,8 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 @Controller('users')
 @ApiTags('Users')
 export class UserController {
+  private readonly logger = new Logger(UserController.name); // Initialize Logger
+
   constructor(private readonly userService: UserService) {}
 
   @Post()
@@ -28,21 +29,50 @@ export class UserController {
       },
     },
   })
-  createUser(@Body() data: CreateUserDto) {
-    return this.userService.createUser(data);
+  async createUser(@Body() data: CreateUserDto) {
+    this.logger.log('Creating a new user with email: ' + data.email);
+    try {
+      const user = await this.userService.createUser(data);
+      this.logger.log('User successfully created with ID: ' + user.id);
+      return user;
+    } catch (error) {
+      this.logger.error('Failed to create user', error.stack);
+      throw error;
+    }
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User data retrieved.' })
-  getUserById(@Param('id') id: string) {
-    return this.userService.getUserById(id);
+  async getUserById(@Param('id') id: string) {
+    this.logger.log('Fetching user with ID: ' + id);
+    try {
+      const user = await this.userService.getUserById(id);
+      if (user) {
+        this.logger.log('User data retrieved for ID: ' + id);
+        return user;
+      } else {
+        this.logger.warn('User not found with ID: ' + id);
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      this.logger.error('Failed to retrieve user with ID: ' + id, error.stack);
+      throw error;
+    }
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'List of all users.' })
-  getAllUsers() {
-    return this.userService.getAllUsers();
+  async getAllUsers() {
+    this.logger.log('Fetching all users');
+    try {
+      const users = await this.userService.getAllUsers();
+      this.logger.log(`Successfully retrieved ${users.length} users`);
+      return users;
+    } catch (error) {
+      this.logger.error('Failed to retrieve users', error.stack);
+      throw error;
+    }
   }
 }

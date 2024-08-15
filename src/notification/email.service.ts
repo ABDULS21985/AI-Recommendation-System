@@ -1,32 +1,31 @@
 // src/notification/email.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
   private transporter: nodemailer.Transporter;
+  private readonly logger = new Logger(EmailService.name); // Initialize Logger
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'Gmail', // Or use another service like SendGrid
+      service: 'Gmail',
       auth: {
-        user: process.env.EMAIL_USER, // Your email username
-        pass: process.env.EMAIL_PASSWORD, // Your email password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
   }
 
   async sendRecommendationEmail(userEmail: string, recommendations: any[]) {
     const recommendationList = recommendations
-      .map(
-        (item) => `<li><strong>${item.title}</strong> - ${item.description}</li>`
-      )
+      .map((item) => `<li><strong>${item.title}</strong> - ${item.description}</li>`)
       .join('');
 
     const mailOptions = {
-      from: '"Recommendation System" <no-reply@recommendations.com>', // Sender address
-      to: userEmail, // Recipient's email
-      subject: 'Your Personalized Recommendations', // Subject line
+      from: '"Recommendation System" <no-reply@recommendations.com>',
+      to: userEmail,
+      subject: 'Your Personalized Recommendations',
       html: `
         <h1>We have new recommendations for you!</h1>
         <ul>
@@ -36,6 +35,11 @@ export class EmailService {
       `,
     };
 
-    return this.transporter.sendMail(mailOptions);
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      this.logger.log(`Email sent successfully to ${userEmail}. Message ID: ${info.messageId}`);
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${userEmail}`, error.stack);
+    }
   }
 }
