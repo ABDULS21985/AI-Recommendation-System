@@ -2,7 +2,9 @@
 import { Controller, Post, Get, Param, Body } from '@nestjs/common';
 import { UserInteractionService } from './user-interaction.service';
 import { CreateUserInteractionDto } from './dto/create-user-interaction.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import { LikeItemDto } from './dto/like-item.dto';
+import { RateItemDto } from './dto/rate-item.dto';
 
 @Controller('interactions')
 @ApiTags('User Interactions')
@@ -36,5 +38,19 @@ export class UserInteractionController {
   @ApiResponse({ status: 200, description: 'User interactions retrieved successfully.' })
   getUserInteractions(@Param('userId') userId: string) {
     return this.interactionService.getUserInteractions(userId);
+  }
+
+  @Post('like')
+  @ApiOperation({ summary: 'Like or Dislike an item' })
+  likeItem(@Body() likeItemDto: LikeItemDto) {
+    const { userId, itemId, like } = likeItemDto;
+    return this.interactionService.likeItem(userId, itemId, like);
+  }
+
+  @Post('rate')
+  @ApiOperation({ summary: 'Rate an item' })
+  rateItem(@Body() rateItemDto: RateItemDto) {
+    const { userId, itemId, rating } = rateItemDto;
+    return this.interactionService.rateItem(userId, itemId, rating);
   }
 }

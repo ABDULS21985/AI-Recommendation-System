@@ -1,15 +1,14 @@
 // src/recommendation/recommendation.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { NotFoundException } from '@nestjs/common';
+import { ItemDto } from './dto/item.dto';
 
 @Injectable()
 export class RecommendationService {
   constructor(private prisma: PrismaService) {}
 
   async getRecommendationsForUser(userId: string) {
-    // Retrieve past recommendations from the database
     const recommendations = await this.prisma.recommendation.findMany({
       where: { userId },
     });
@@ -22,22 +21,21 @@ export class RecommendationService {
   }
 
   async generateRecommendations(userId: string) {
-    // Find users who have similar interactions
     const similarUsers = await this.findSimilarUsers(userId);
     
     if (!similarUsers.length) {
       throw new NotFoundException(`No similar users found for user with ID: ${userId}`);
     }
 
-    // Find items interacted with by similar users
     const recommendedItems = await this.findItemsFromSimilarUsers(similarUsers);
 
     if (!recommendedItems.length) {
       throw new NotFoundException(`No items to recommend based on similar users for user with ID: ${userId}`);
     }
 
-    // Store recommendations in the database
-    const recommendedItemsJson = JSON.stringify(recommendedItems);
+    const prioritizedItems = this.prioritizeItems(recommendedItems);
+
+    const recommendedItemsJson = JSON.stringify(prioritizedItems);
 
     return this.prisma.recommendation.create({
       data: { 
@@ -48,7 +46,6 @@ export class RecommendationService {
   }
 
   private async findSimilarUsers(userId: string) {
-    // Get the items that the user interacted with
     const userInteractions = await this.prisma.userInteraction.findMany({
       where: { userId },
       select: { itemId: true },
@@ -60,11 +57,10 @@ export class RecommendationService {
 
     const itemIds = userInteractions.map((interaction) => interaction.itemId);
 
-    // Find users who interacted with the same items
     const similarUsers = await this.prisma.userInteraction.findMany({
       where: {
         itemId: { in: itemIds },
-        userId: { not: userId }, // Exclude the current user
+        userId: { not: userId },
       },
       distinct: ['userId'],
       select: { userId: true },
@@ -73,14 +69,25 @@ export class RecommendationService {
     return similarUsers.map((interaction) => interaction.userId);
   }
 
-  private async findItemsFromSimilarUsers(similarUserIds: string[]) {
-    // Find items interacted with by similar users
+  private async findItemsFromSimilarUsers(similarUserIds: string[]): Promise<ItemDto[]> {
     const similarUserInteractions = await this.prisma.userInteraction.findMany({
       where: { userId: { in: similarUserIds } },
       distinct: ['itemId'],
-      select: { itemId: true },
+      select: { itemId: true, like: true, rating: true },
     });
 
-    return similarUserInteractions.map((interaction) => interaction.itemId);
+    return similarUserInteractions.map(interaction => ({
+      itemId: interaction.itemId,
+      like: interaction.like,
+      rating: interaction.rating,
+    }));
+  }
+
+  private prioritizeItems(items: ItemDto[]) {
+    return items.sort((a, b) => {
+      const scoreA = (a.like ? 1 : 0) + (a.rating || 0);
+      const scoreB = (b.like ? 1 : 0) + (b.rating || 0);
+      return scoreB - scoreA;
+    });
   }
 }
