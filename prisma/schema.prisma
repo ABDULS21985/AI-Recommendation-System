@@ -57,6 +57,8 @@ model UserInteraction {
 
   user User @relation(fields: [userId], references: [id])
   item Item @relation(fields: [itemId], references: [id])
+  
+  @@index([userId, itemId])
 }
 
 model Recommendation {
