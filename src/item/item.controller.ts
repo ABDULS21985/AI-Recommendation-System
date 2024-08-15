@@ -45,7 +45,14 @@ export class ItemController {
   ) {
     this.logger.log('Received request to retrieve items with filters');
     
-    const filters = { title, description, price: price ? Number(price) : undefined, color, skip: skip ? Number(skip) : 0, take: take ? Number(take) : 10 };
+    const filters = { 
+      title, 
+      description, 
+      price: price ? Number(price) : undefined, 
+      color, 
+      skip: skip ? Number(skip) : 0, 
+      take: take ? Number(take) : 10 
+    };
     
     try {
       const items = await this.itemService.getItems(filters);

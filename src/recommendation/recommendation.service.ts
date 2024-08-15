@@ -15,6 +15,7 @@ export class RecommendationService {
     private notificationPreferenceService: NotificationPreferenceService,
   ) {}
 
+  // Get recommendations for a user
   async getRecommendationsForUser(userId: string) {
     this.logger.log(`Fetching recommendations for user: ${userId}`);
     const recommendations = await this.prisma.recommendation.findMany({
@@ -30,6 +31,7 @@ export class RecommendationService {
     return recommendations;
   }
 
+  // Generate new recommendations for a user
   async generateRecommendations(userId: string) {
     this.logger.log(`Generating recommendations for user: ${userId}`);
 
@@ -47,7 +49,8 @@ export class RecommendationService {
       throw new NotFoundException(`No items to recommend based on similar users for user with ID: ${userId}`);
     }
 
-    const recommendedItemsJson = JSON.stringify(recommendedItems);
+    const prioritizedItems = this.prioritizeItems(recommendedItems);
+    const recommendedItemsJson = JSON.stringify(prioritizedItems);
 
     // Save recommendations to the database
     const recommendation = await this.prisma.recommendation.create({
@@ -67,7 +70,7 @@ export class RecommendationService {
 
     // Send email notification
     try {
-      await this.emailService.sendRecommendationEmail(user.email, recommendedItems);
+      await this.emailService.sendRecommendationEmail(user.email, prioritizedItems);
       this.logger.log(`Email notification successfully sent to user: ${user.email}`);
     } catch (error) {
       this.logger.error(`Failed to send email to user: ${user.email}`, error.stack);
@@ -76,6 +79,7 @@ export class RecommendationService {
     return recommendation;
   }
 
+  // Find similar users for collaborative filtering
   private async findSimilarUsers(userId: string) {
     this.logger.log(`Finding similar users for user: ${userId}`);
 
@@ -104,6 +108,7 @@ export class RecommendationService {
     return similarUsers.map((interaction) => interaction.userId);
   }
 
+  // Find items from similar users
   private async findItemsFromSimilarUsers(similarUserIds: string[]): Promise<ItemDto[]> {
     this.logger.log(`Finding items from similar users: ${similarUserIds.join(', ')}`);
 
@@ -121,15 +126,17 @@ export class RecommendationService {
     }));
   }
 
+  // Prioritize items based on likes and ratings
   private prioritizeItems(items: ItemDto[]) {
     this.logger.log(`Prioritizing items based on likes and ratings.`);
     return items.sort((a, b) => {
-      const scoreA = (a.like ? 1 : 0) + (a.rating || 0);
-      const scoreB = (b.like ? 1 : 0) + (b.rating || 0);
-      return scoreB - scoreA;
+      const scoreA = (a.like ? 3 : 0) + (a.rating || 0);
+      const scoreB = (b.like ? 3 : 0) + (b.rating || 0);
+      return scoreB - scoreA; // Higher scores first
     });
   }
 
+  // Check if email should be sent based on user preferences
   private shouldSendEmail(preference: any): boolean {
     if (!preference) return false;
     

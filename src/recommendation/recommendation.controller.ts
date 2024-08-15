@@ -1,7 +1,6 @@
 import { Controller, Get, Param, Logger } from '@nestjs/common';
 import { RecommendationService } from './recommendation.service';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { UserIdParamDto } from './dto/user-id-param.dto';
 import { ParseUUIDPipe } from '@nestjs/common';
 
 @Controller('recommendations')

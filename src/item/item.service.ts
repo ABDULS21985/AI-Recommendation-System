@@ -29,7 +29,14 @@ export class ItemService {
     }
   }
 
-  async getItems(filters: { title?: string; description?: string; price?: number; color?: string; skip?: number; take?: number }) {
+  async getItems(filters: { 
+    title?: string; 
+    description?: string; 
+    price?: number; 
+    color?: string; 
+    skip?: number; 
+    take?: number 
+  }) {
     this.logger.log(`Retrieving items with filters: ${JSON.stringify(filters)}`);
     
     try {
@@ -44,8 +51,8 @@ export class ItemService {
 
       const items = await this.prisma.item.findMany({
         where,
-        skip,
-        take,
+        skip: skip || 0,
+        take: take || 10,
       });
       
       this.logger.log(`Successfully retrieved ${items.length} items`);
