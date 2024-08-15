@@ -3,10 +3,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ItemDto } from './dto/item.dto';
+import { EmailService } from '../notification/email.service';
 
 @Injectable()
 export class RecommendationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async getRecommendationsForUser(userId: string) {
     const recommendations = await this.prisma.recommendation.findMany({
@@ -33,16 +37,26 @@ export class RecommendationService {
       throw new NotFoundException(`No items to recommend based on similar users for user with ID: ${userId}`);
     }
 
-    const prioritizedItems = this.prioritizeItems(recommendedItems);
+    const recommendedItemsJson = JSON.stringify(recommendedItems);
 
-    const recommendedItemsJson = JSON.stringify(prioritizedItems);
-
-    return this.prisma.recommendation.create({
-      data: { 
-        userId, 
+    // Save recommendations to the database
+    const recommendation = await this.prisma.recommendation.create({
+      data: {
+        userId,
         recommendedItems: recommendedItemsJson,
       },
     });
+
+    // Fetch user email for sending notification
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    // Send email notification
+    await this.emailService.sendRecommendationEmail(user.email, recommendedItems);
+
+    return recommendation;
   }
 
   private async findSimilarUsers(userId: string) {
