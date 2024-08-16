@@ -131,4 +131,19 @@ async updatePassword(userId: string, updatePasswordDto: UpdatePasswordDto) {
     throw error;
   }
 }
+
+async resetUserPassword(userId: string, newPassword: string): Promise<void> {
+  this.logger.log(`Resetting password for user with ID: ${userId}`);
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+    this.logger.log(`Password successfully reset for user with ID: ${userId}`);
+  } catch (error) {
+    this.logger.error(`Error resetting password for user with ID: ${userId}`, error.stack);
+    throw error;
+  }
+}
 }

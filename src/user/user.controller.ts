@@ -3,6 +3,12 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+
 
 @Controller('users')
 @ApiTags('Users')
@@ -108,5 +114,20 @@ export class UserController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     return this.userService.updatePassword(id, updatePasswordDto);
+  }
+
+  @Patch(':id/password')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Reset a user\'s password (admin only)' })
+  @ApiBody({
+    description: 'New password for the user',
+    type: ResetPasswordDto, // Create a DTO for validation
+  })
+  async resetPassword(
+    @Param('id') id: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.userService.resetUserPassword(id, newPassword);
   }
 }
