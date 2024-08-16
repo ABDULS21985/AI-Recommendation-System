@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Param, Body, Query, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, Logger, Patch } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
 @ApiTags('Users')
@@ -20,11 +21,11 @@ export class UserController {
       example1: {
         summary: 'Sample user payload',
         value: {
-          name: 'John Doe',
-          email: 'johndoe@example.com',
+          name: 'Dr Katanga',
+          email: 'drkatanga@example.com',
           age: 25,
           gender: 'Male',
-          location: 'New York',
+          location: 'Abuja',
         },
       },
     },
@@ -97,5 +98,15 @@ export class UserController {
       this.logger.error('Failed to search for users', error.stack);
       throw error;
     }
+  }
+
+  @Patch(':id/password')
+  @ApiOperation({ summary: 'Update user password' })
+  @ApiBody({ type: UpdatePasswordDto })
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.userService.updatePassword(id, updatePasswordDto);
   }
 }

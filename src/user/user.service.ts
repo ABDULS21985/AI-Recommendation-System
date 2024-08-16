@@ -3,6 +3,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma, User } from '@prisma/client';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -94,6 +96,38 @@ async findByEmail(email: string) {
     }
   } catch (error) {
     this.logger.error(`Error fetching user with email: ${email}`, error.stack);
+    throw error;
+  }
+}
+
+async updatePassword(userId: string, updatePasswordDto: UpdatePasswordDto) {
+  const { currentPassword, newPassword } = updatePasswordDto;
+
+  this.logger.log(`Updating password for user with ID: ${userId}`);
+
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+  if (!user) {
+    this.logger.warn(`User not found with ID: ${userId}`);
+    throw new Error('User not found');
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    this.logger.warn(`Incorrect current password for user with ID: ${userId}`);
+    throw new Error('Current password is incorrect');
+  }
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+  try {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNewPassword },
+    });
+    this.logger.log(`Password successfully updated for user with ID: ${userId}`);
+  } catch (error) {
+    this.logger.error(`Error updating password for user with ID: ${userId}`, error.stack);
     throw error;
   }
 }
