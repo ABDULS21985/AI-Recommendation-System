@@ -12,28 +12,47 @@ export class UserService {
 
   constructor(private prisma: PrismaService) {}
 
+  // async createUser(data: CreateUserDto): Promise<User> {
+  //   this.logger.log(`Creating a new user with email: ${data.email}`);
+  //   try {
+  //     // Check if the user already exists
+  //     const existingUser = await this.findByEmail(data.email);
+  //     if (existingUser) {
+  //       throw new ConflictException('A user with this email already exists');
+  //     }
+      
+  //     // Create a new user
+  //     const user = await this.prisma.user.create({
+  //       data: {
+  //         ...data,
+  //         password: await bcrypt.hash(data.password, 10), // Hash the password
+  //       },
+  //     });
+  //     return user;
+  //   } catch (error) {
+  //     this.logger.error(`Error creating user: ${error.message}`);
+  //     throw error;
+  //   }
+  // }
+
   async createUser(data: CreateUserDto): Promise<User> {
     this.logger.log(`Creating a new user with email: ${data.email}`);
     try {
-      // Check if the user already exists
-      const existingUser = await this.findByEmail(data.email);
-      if (existingUser) {
-        throw new ConflictException('A user with this email already exists');
-      }
-      
-      // Create a new user
+      const hashedPassword = await bcrypt.hash(data.password, 10);
       const user = await this.prisma.user.create({
         data: {
           ...data,
-          password: await bcrypt.hash(data.password, 10), // Hash the password
+          password: hashedPassword,
         },
       });
       return user;
     } catch (error) {
-      this.logger.error(`Error creating user: ${error.message}`);
+      this.logger.error('Error creating user', error);
       throw error;
     }
   }
+  
+
   async getUserById(id: string): Promise<User> {
     this.logger.log(`Fetching user with ID: ${id}`);
     try {
