@@ -5,10 +5,11 @@ import { RecommendationService } from './recommendation.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailService } from '../notification/email.service';
 import { NotificationPreferenceService } from '../notification/notification-preference.service';
+import { RecommendationsGateway } from './recommendations.gateway';
 
 @Module({
   imports: [PrismaModule],
   controllers: [RecommendationController],
-  providers: [RecommendationService, EmailService, NotificationPreferenceService],
+  providers: [RecommendationService, EmailService, NotificationPreferenceService, RecommendationsGateway],
 })
 export class RecommendationModule {}

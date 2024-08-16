@@ -5,6 +5,7 @@ import { ItemDto } from './dto/item.dto';
 import { EmailService } from '../notification/email.service';
 import { NotificationPreferenceService } from '../notification/notification-preference.service';
 import { Recommendation } from './entities/recommendation.entity';
+import { RecommendationsGateway } from './recommendations.gateway';
 
 @Injectable()
 export class RecommendationService {
@@ -14,6 +15,8 @@ export class RecommendationService {
     private prisma: PrismaService,
     private emailService: EmailService,
     private notificationPreferenceService: NotificationPreferenceService,
+    private recommendationsGateway: RecommendationsGateway,
+
   ) {}
 
   // Get recommendations for a user based on domain
@@ -39,9 +42,11 @@ export class RecommendationService {
     const similarUsers = await this.findSimilarUsers(userId, domain);
     const RecommendationItems = await this.findItemsFromSimilarUsers(similarUsers, domain);
 
+
     if (!similarUsers.length) {
       this.logger.warn(`No similar users found for user: ${userId} in domain: ${domain}`);
       throw new NotFoundException(`No similar users found for user with ID: ${userId} in domain: ${domain}`);
+      this.logger.warn(`No items found for similar users in domain: ${domain}`);
     }
 
     const recommendedItems = await this.findItemsFromSimilarUsers(similarUsers, domain);
