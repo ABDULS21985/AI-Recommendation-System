@@ -7,10 +7,11 @@ import { ItemModule } from './item/item.module';
 import { UserModule } from './user/user.module';
 import { UserInteractionModule } from './user-interaction/user-interaction.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
-  imports: [PrismaModule, RecommendationModule, ItemModule, UserModule, UserInteractionModule, MetricsModule],
+  imports: [PrismaModule, RecommendationModule, ItemModule, UserModule, UserInteractionModule, MetricsModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
