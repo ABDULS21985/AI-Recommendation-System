@@ -1,5 +1,5 @@
 // src/user/user.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma, User } from '@prisma/client';
@@ -15,15 +15,25 @@ export class UserService {
   async createUser(data: CreateUserDto): Promise<User> {
     this.logger.log(`Creating a new user with email: ${data.email}`);
     try {
-      const user = await this.prisma.user.create({ data });
-      this.logger.log(`User successfully created with ID: ${user.id}`);
+      // Check if the user already exists
+      const existingUser = await this.findByEmail(data.email);
+      if (existingUser) {
+        throw new ConflictException('A user with this email already exists');
+      }
+      
+      // Create a new user
+      const user = await this.prisma.user.create({
+        data: {
+          ...data,
+          password: await bcrypt.hash(data.password, 10), // Hash the password
+        },
+      });
       return user;
     } catch (error) {
-      this.logger.error('Error creating user', error.stack);
+      this.logger.error(`Error creating user: ${error.message}`);
       throw error;
     }
   }
-
   async getUserById(id: string): Promise<User> {
     this.logger.log(`Fetching user with ID: ${id}`);
     try {

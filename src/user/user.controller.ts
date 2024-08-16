@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, Query, Logger, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, Logger, Patch, ConflictException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
@@ -20,6 +20,7 @@ export class UserController {
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User successfully created.' })
+  @ApiResponse({ status: 409, description: 'User with this email already exists.' })
   @ApiBody({
     type: CreateUserDto,
     description: 'Payload to create a new user',
@@ -43,6 +44,9 @@ export class UserController {
       this.logger.log('User successfully created with ID: ' + user.id);
       return user;
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw new ConflictException('A user with this email already exists');
+      }
       this.logger.error('Failed to create user', error.stack);
       throw error;
     }

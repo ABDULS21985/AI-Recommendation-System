@@ -1,5 +1,5 @@
 // src/auth/auth.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { UserDto } from './dto/user.dto';
@@ -14,8 +14,8 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.userService.findByEmail(email); // Ensure this method exists
-    if (user && await bcrypt.compare(password, user.password)) { // Compare hashed passwords
+    const user = await this.userService.findByEmail(email);
+    if (user && await bcrypt.compare(password, user.password)) {
       return user;
     }
     return null;
@@ -24,9 +24,9 @@ export class AuthService {
   async login(userDto: UserDto) {
     const user = await this.validateUser(userDto.email, userDto.password);
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { username: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload),
       refresh_token: await this.generateRefreshToken(user.id),
@@ -34,20 +34,22 @@ export class AuthService {
   }
 
   async generateRefreshToken(userId: string) {
-    const refreshToken = this.jwtService.sign({ sub: userId }, { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '7d' });
-    return refreshToken;
+    return this.jwtService.sign(
+      { sub: userId },
+      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '7d' }
+    );
   }
 
   async refreshToken(token: string) {
     try {
       const payload = this.jwtService.verify(token, { secret: process.env.JWT_REFRESH_SECRET });
-      const user = await this.userService.findByEmail(payload.username); // Adjust method if needed
+      const user = await this.userService.findByEmail(payload.email); // Use existing method
       if (user) {
-        const newAccessToken = this.jwtService.sign({ username: user.email, sub: user.id });
+        const newAccessToken = this.jwtService.sign({ email: user.email, sub: user.id });
         return { access_token: newAccessToken };
       }
     } catch (e) {
-      throw new Error('Invalid refresh token');
+      throw new UnauthorizedException('Invalid refresh token');
     }
   }
 }
