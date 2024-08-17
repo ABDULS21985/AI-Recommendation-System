@@ -63,4 +63,32 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
+
+  async logout(token: string) {
+    try {
+      const payload = this.jwtService.verify(token, { secret: process.env.JWT_REFRESH_SECRET });
+      this.logger.log(`Revoking refresh token for user: ${payload.email}`);
+      // Perform any additional logic here
+    } catch (e) {
+      this.logger.error('Error revoking token', e.stack);
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  async updateProfile(userDto: UserDto) {
+    this.logger.log(`Update profile request for user: ${userDto.email}`);
+    // Perform any additional logic here
+    this.logger.log(`Profile updated for user: ${userDto.email}`);
+    return { message: 'Profile updated' };
+  }
+
+
+  async getProfile(email: string) {
+    this.logger.log(`Profile request for user: ${email}`);
+    const user = await this.userService.findByEmail(email); // Use existing method
+    if (user) {
+      this.logger.log(`Profile returned for user: ${email}`);
+      return user;
+    }
+  }
 }

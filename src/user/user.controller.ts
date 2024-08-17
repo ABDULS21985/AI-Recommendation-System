@@ -9,7 +9,6 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
-
 @Controller('users')
 @ApiTags('Users')
 export class UserController {
@@ -117,21 +116,40 @@ export class UserController {
     @Param('id') id: string,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
-    return this.userService.updatePassword(id, updatePasswordDto);
+    this.logger.log(`Updating password for user with ID: ${id}`);
+    try {
+      await this.userService.updatePassword(id, updatePasswordDto);
+      this.logger.log(`Password successfully updated for user with ID: ${id}`);
+    } catch (error) {
+      this.logger.error(`Failed to update password for user with ID: ${id}`, error.stack);
+      throw error;
+    }
   }
 
-  @Patch(':id/password')
+  @Patch(':id/password/reset')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @ApiOperation({ summary: 'Reset a user\'s password (admin only)' })
   @ApiBody({
     description: 'New password for the user',
-    type: ResetPasswordDto, // Create a DTO for validation
+    type: ResetPasswordDto, 
   })
   async resetPassword(
     @Param('id') id: string,
-    @Body('newPassword') newPassword: string,
+    @Body() resetPasswordDto: ResetPasswordDto,
   ) {
-    return this.userService.resetUserPassword(id, newPassword);
+    this.logger.log(`Resetting password for user with ID: ${id}`);
+    try {
+      await this.userService.resetUserPassword(id, resetPasswordDto.newPassword);
+      this.logger.log(`Password successfully reset for user with ID: ${id}`);
+    } catch (error) {
+      this.logger.error(`Failed to reset password for user with ID: ${id}`, error.stack);
+      throw error;
+    }
   }
+
+
+
+
+  
 }
